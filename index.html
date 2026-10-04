@@ -35,6 +35,27 @@ input,select{width:100%;background:#12171d;color:var(--tx);border:1px solid var(
 .li button{background:none;border:0;color:var(--mu);font-size:16px;padding:4px 8px}
 .ghost{background:none;border:0;color:var(--mu);font-size:12px;text-decoration:underline;margin-top:8px}
 .hide{display:none}.empty{color:var(--mu);font-size:12px}
+@media(min-width:900px){
+.w{max-width:1180px;padding:28px 32px 56px}
+h1{font-size:26px}.sub{font-size:13px}
+#pgD{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;align-items:start}
+#pgD.hide,#pgN.hide{display:none}
+#pgD>.c,#pgD>.grid{margin:0}
+#pgD>:nth-child(1){grid-column:span 12;grid-template-columns:repeat(4,1fr);gap:14px}
+#pgD>:nth-child(1) .c{padding:22px}
+#pgD>:nth-child(1) .n{font-size:32px}
+#pgD>:nth-child(2),#pgD>:nth-child(3),#pgD>:nth-child(4){grid-column:span 4}
+#pgD>:nth-child(5){grid-column:span 12}
+#pgD>:nth-child(6),#pgD>:nth-child(7){grid-column:span 6}
+#pgD>:nth-child(8){grid-column:span 5}
+#pgD>:nth-child(9){grid-column:span 7}
+#pgD>:nth-child(n+10){grid-column:span 12}
+#pgN{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+#pgN>.c{margin:0}
+#pgN>:nth-child(1),#pgN>:nth-child(4),#pgN>:nth-child(5){grid-column:span 2}
+.tabs button{font-size:13px;padding:8px 16px;cursor:pointer}
+.c{padding:18px}
+}
 </style></head><body><div class="w">
 <h1>My finance dashboard</h1><div class="sub" id="sub"></div><div class="sub" id="rs" style="margin-top:-10px"></div>
 <div class="tabs" id="nav" style="margin:0 0 12px"><button data-p="d" class="on">Dashboard</button><button data-p="n">Gold &amp; silver news</button></div>
