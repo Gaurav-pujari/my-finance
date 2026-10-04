@@ -42,15 +42,18 @@ h1{font-size:26px}.sub{font-size:13px}
 #pgD{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;align-items:start}
 #pgD.hide,#pgN.hide{display:none}
 #pgD>.c,#pgD>.grid{margin:0}
-#pgD>:nth-child(1){grid-column:span 12;grid-template-columns:repeat(4,1fr);gap:14px}
-#pgD>:nth-child(1) .c{padding:22px}
-#pgD>:nth-child(1) .n{font-size:32px}
-#pgD>:nth-child(2),#pgD>:nth-child(3),#pgD>:nth-child(4){grid-column:span 4}
-#pgD>:nth-child(5){grid-column:span 12}
-#pgD>:nth-child(6),#pgD>:nth-child(7){grid-column:span 6}
-#pgD>:nth-child(8){grid-column:span 5}
-#pgD>:nth-child(9){grid-column:span 7}
-#pgD>:nth-child(n+10){grid-column:span 12}
+#pgD>:nth-child(1){grid-column:span 12}
+#flt{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+#flt h2,#flt .tabs{margin:0}#flt .r{display:flex;gap:10px}#flt select{width:auto;min-width:130px}#flt .l{margin:0!important}
+#pgD>:nth-child(2){grid-column:span 12;grid-template-columns:repeat(4,1fr);gap:14px}
+#pgD>:nth-child(2) .c{padding:22px}
+#pgD>:nth-child(2) .n{font-size:32px}
+#pgD>:nth-child(3),#pgD>:nth-child(4),#pgD>:nth-child(5){grid-column:span 4}
+#pgD>:nth-child(6){grid-column:span 12}
+#pgD>:nth-child(7),#pgD>:nth-child(8){grid-column:span 6}
+#pgD>:nth-child(9){grid-column:span 5}
+#pgD>:nth-child(10){grid-column:span 7}
+#pgD>:nth-child(n+11){grid-column:span 12}
 #pgN{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
 #pgN>.c{margin:0}
 #pgN>:nth-child(1),#pgN>:nth-child(4),#pgN>:nth-child(5){grid-column:span 2}
@@ -61,6 +64,8 @@ h1{font-size:26px}.sub{font-size:13px}
 <h1>My finance dashboard</h1><div class="sub" id="sub"></div><div class="sub" id="rs" style="margin-top:-10px"></div>
 <div class="tabs" id="nav" style="margin:0 0 12px"><button data-p="d" class="on">Dashboard</button><button data-p="n">Gold &amp; silver news</button></div>
 <div id="pgD">
+<div class="c" id="flt"><h2>Period</h2><div class="tabs" id="pmb" style="margin-bottom:8px"></div><div class="r"><select id="pyr" aria-label="Year"></select><select id="pmo" aria-label="Month"></select></div><div class="l" id="pl" style="margin-top:8px"></div></div>
+
 <div class="grid">
 <div class="c"><div class="l">Income</div><div class="n g" id="kI">-</div></div>
 <div class="c"><div class="l">Expenses</div><div class="n" id="kE">-</div></div>
@@ -68,7 +73,7 @@ h1{font-size:26px}.sub{font-size:13px}
 <div class="c"><div class="l">Net worth</div><div class="n" id="kN">-</div><div class="l" id="kNs" style="margin-top:2px"></div></div>
 </div>
 <div class="c"><h2>Expenses by category</h2><div class="row"><div class="don" id="don"><i></i></div><div class="leg" id="leg"></div></div></div>
-<div class="c"><h2>Income vs expenses, 6 months</h2><div class="bars" id="bars"></div></div>
+<div class="c"><h2>Income vs expenses by month</h2><div class="bars" id="bars"></div></div>
 <div class="c gold"><h2 class="g">Gold, 24K Pune</h2>
 <div class="grid" style="margin:0 0 8px">
 <div><div class="l">Rate per gram</div><div class="n" id="gR">-</div></div>
@@ -142,9 +147,9 @@ function eff(a,L){var r=last(a||[]);return(!r||L.d>r.d)?L:r}
 function sum(a,f){return a.reduce(function(t,r){return t+f(r)},0)}
 function last(a){return a.slice().sort(function(p,q){return p.d<q.d?-1:1}).pop()}
 function render(){
-var now=iso(),m=now.slice(0,7);
+var now=iso(),m=now.slice(0,7);fl();
 $("sub").textContent=new Date().toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-var ms=S.tx.filter(function(t){return t.d.slice(0,7)==m});
+var ms=S.tx.filter(function(t){return inP(t.d)});
 var inc=sum(ms.filter(function(t){return t.t=="Income"}),function(t){return t.a});
 var exp=sum(ms.filter(function(t){return t.t=="Expense"}),function(t){return t.a});
 var rt=eff(S.rate,LATEST.g),rate=rt.v;
@@ -167,12 +172,12 @@ if(ks.length){var acc=0,seg=ks.map(function(k,i){var s=acc/exp*100;acc+=cats[k];
 $("don").style.background="conic-gradient("+seg.join(",")+")";
 $("leg").innerHTML=ks.map(function(k,i){return '<div><span><span class="dot" style="background:'+COL[i%6]+'"></span>'+k+"</span><span>"+inr(cats[k])+"</span></div>"}).join("")}
 else{$("don").style.background="#252d37";$("leg").innerHTML='<div class="empty">No expenses this month.</div>'}
-var mm=[],d=new Date();d.setDate(1);for(var i=5;i>=0;i--){var x=new Date(d.getFullYear(),d.getMonth()-i,1);mm.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0"))}
+var cnt=pm=="m"?6:12,E=pm=="m"?new Date(+py,+pmo-1,1):pm=="y"?new Date(+py,11,1):new Date(),mm=[];for(var i=cnt-1;i>=0;i--){var x=new Date(E.getFullYear(),new Date(E.getFullYear(),E.getMonth(),1).getMonth()-i,1);mm.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0"))}
 var data=mm.map(function(k){var r=S.tx.filter(function(t){return t.d.slice(0,7)==k});return{k:k,i:sum(r.filter(function(t){return t.t=="Income"}),function(t){return t.a}),e:sum(r.filter(function(t){return t.t=="Expense"}),function(t){return t.a})}});
 var mx=Math.max(1,Math.max.apply(null,data.map(function(z){return Math.max(z.i,z.e)})));
 $("bars").innerHTML=data.map(function(z){var nm=new Date(z.k+"-01").toLocaleDateString("en-IN",{month:"short"});
 return '<div class="bg"><div class="pair"><b style="height:'+z.i/mx*100+'%;background:#E5B84B"></b><b style="height:'+z.e/mx*100+'%;background:#4b5563"></b></div><span class="l">'+nm+"</span></div>"}).join("");
-var rec=S.tx.slice().sort(function(a,b){return a.d<b.d?1:-1}).slice(0,6);
+var rec=S.tx.filter(function(t){return inP(t.d)}).sort(function(a,b){return a.d<b.d?1:-1}).slice(0,6);
 $("rec").innerHTML=rec.length?rec.map(function(t){return '<div class="li"><span>'+t.c+' <span class="l">'+t.d+'</span></span><span class="'+(t.t=="Income"?"up":"")+'">'+(t.t=="Income"?"+":"-")+inr(t.a)+' <button data-id="'+t.id+'" aria-label="Delete">×</button></span></div>'}).join(""):'<div class="empty">No entries yet. Add your first one above.</div>';
 }
 function tabs(){$("tabs").innerHTML=Object.keys(MODES).map(function(k){return '<button data-m="'+k+'" class="'+(k==mode?"on":"")+'">'+MODES[k]+"</button>"}).join("");
@@ -276,6 +281,18 @@ r.readAsArrayBuffer(f);e.target.value=""};
 function gq(id,sh){return fetch("https://docs.google.com/spreadsheets/d/"+id+"/gviz/tq?tqx=out:json&headers=1&sheet="+sh).then(function(r){return r.text()}).then(function(t){var j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));return j.table.rows.map(function(r){return(r.c||[]).map(function(c){return c?c.v:null})})})}
 function gsync(id){sm("Syncing...");Promise.all(["Transactions","Balance","Gold","GoldRate"].map(function(n){return gq(id,n)})).then(function(a){var o=build(a[0],a[1],a[2],a[3]);applyData(o);try{localStorage.setItem("gsid",id)}catch(e){}sm("Synced "+sumry(o)+".")}).catch(function(){sm("Could not read the sheet. It must be a real Google Sheet (in Drive: File, Save as Google Sheets) and shared as Anyone with the link can view.")})}
 $("gb").onclick=function(){var m=$("gl").value.match(/\/d\/([\w-]+)/);if(!m){sm("Paste the full Google Sheet link.");return}gsync(m[1])};
+var pm="m",py=iso().slice(0,4),pmo=iso().slice(5,7),MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function inP(d){return pm=="a"||(pm=="y"?d.slice(0,4)==py:d.slice(0,7)==py+"-"+pmo)}
+function fl(){
+$("pmb").innerHTML=[["m","Month"],["y","Year"],["a","All time"]].map(function(b){return '<button data-pm="'+b[0]+'" class="'+(b[0]==pm?"on":"")+'">'+b[1]+"</button>"}).join("");
+var ys={};ys[iso().slice(0,4)]=1;ys[py]=1;S.tx.forEach(function(t){ys[t.d.slice(0,4)]=1});
+$("pyr").innerHTML=Object.keys(ys).sort().reverse().map(function(y){return "<option"+(y==py?" selected":"")+">"+y+"</option>"}).join("");
+$("pmo").innerHTML=MN.map(function(n,i){var v=String(i+1).padStart(2,"0");return '<option value="'+v+'"'+(v==pmo?" selected":"")+">"+n+"</option>"}).join("");
+$("pyr").style.display=pm=="a"?"none":"";$("pmo").style.display=pm=="m"?"":"none";
+$("pl").textContent="Showing "+(pm=="a"?"all time":pm=="y"?"year "+py:MN[+pmo-1]+" "+py)}
+$("pmb").onclick=function(e){var v=e.target.getAttribute("data-pm");if(v){pm=v;render()}};
+$("pyr").onchange=function(){py=$("pyr").value;render()};
+$("pmo").onchange=function(){pmo=$("pmo").value;render()};
 $("dt").value=iso();tabs();render();auto();
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(function(){});
 </script></body></html>
