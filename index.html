@@ -65,7 +65,7 @@ h1{font-size:26px}.sub{font-size:13px}
 <div class="c"><div class="l">Income</div><div class="n g" id="kI">-</div></div>
 <div class="c"><div class="l">Expenses</div><div class="n" id="kE">-</div></div>
 <div class="c"><div class="l">Savings</div><div class="n" id="kS">-</div></div>
-<div class="c"><div class="l">Net worth</div><div class="n" id="kN">-</div></div>
+<div class="c"><div class="l">Net worth</div><div class="n" id="kN">-</div><div class="l" id="kNs" style="margin-top:2px"></div></div>
 </div>
 <div class="c"><h2>Expenses by category</h2><div class="row"><div class="don" id="don"><i></i></div><div class="leg" id="leg"></div></div></div>
 <div class="c"><h2>Income vs expenses, 6 months</h2><div class="bars" id="bars"></div></div>
@@ -149,10 +149,10 @@ var inc=sum(ms.filter(function(t){return t.t=="Income"}),function(t){return t.a}
 var exp=sum(ms.filter(function(t){return t.t=="Expense"}),function(t){return t.a});
 var rt=eff(S.rate,LATEST.g),rate=rt.v;
 var gr=sum(S.gold,function(g){return g.g}),inv=sum(S.gold,function(g){return g.g*g.p}),val=gr*rate,pf=val-inv;
-var bl=last(S.bal),bank=bl?bl.v:0;
+var bl=last(S.bal),bank=bl?bl.v+sum(S.tx.filter(function(t){return t.d>bl.d}),function(t){return t.t=="Income"?t.a:-t.a}):0;
 $("kI").textContent=inr(inc);$("kE").textContent=inr(exp);
 $("kS").textContent=inr(inc-exp);$("kS").className="n "+(inc-exp>=0?"up":"dn");
-$("kN").textContent=inr(bank+val);
+$("kN").textContent=inr(bank+val);$("kNs").textContent="Bank "+inr(bank)+" + gold "+inr(val);
 $("gR").textContent=inr(rate);$("gV").textContent=inr(val);
 $("gP").textContent=(pf>=0?"+":"-")+inr(Math.abs(pf));$("gP").className="n "+(pf>=0?"up":"dn");
 $("gPc").textContent=inv?(pf>=0?"+":"")+(pf/inv*100).toFixed(1)+"%":"-";$("gPc").className="n "+(pf>=0?"up":"dn");
@@ -178,7 +178,7 @@ $("rec").innerHTML=rec.length?rec.map(function(t){return '<div class="li"><span>
 function tabs(){$("tabs").innerHTML=Object.keys(MODES).map(function(k){return '<button data-m="'+k+'" class="'+(k==mode?"on":"")+'">'+MODES[k]+"</button>"}).join("");
 var cs=mode=="exp"?CE:CI;$("cat").innerHTML=cs.map(function(c){return "<option>"+c+"</option>"}).join("");
 $("fCat").className=(mode=="exp"||mode=="inc")?"":"hide";$("fG").className=mode=="buy"?"":"hide";$("fAmt").className=mode=="buy"?"hide":"";
-$("aL").textContent=mode=="bal"?"Bank balance (₹)":mode=="rate"?"24K gold rate per gram (₹)":mode=="srate"?"Silver rate per gram (₹)":"Amount (₹)"}
+$("aL").textContent=mode=="bal"?"Bank balance now (₹). Income and expenses added after this date adjust it automatically":mode=="rate"?"24K gold rate per gram (₹)":mode=="srate"?"Silver rate per gram (₹)":"Amount (₹)"}
 $("tabs").onclick=function(e){var m=e.target.getAttribute("data-m");if(m){mode=m;tabs();$("msg").textContent=""}};
 $("rec").onclick=function(e){var id=e.target.getAttribute("data-id");if(id){S.tx=S.tx.filter(function(t){return String(t.id)!==id});save()}};
 $("add").onclick=function(){
@@ -188,7 +188,7 @@ else{if(!(a>0)){$("msg").textContent="Enter an amount.";return}
 if(mode=="bal"){S.bal=S.bal.filter(function(b){return b.d!=d});S.bal.push({d:d,v:a})}
 else if(mode=="rate"){S.rate=S.rate.filter(function(b){return b.d!=d});S.rate.push({d:d,v:a})}
 else if(mode=="srate"){S.srate=(S.srate||[]).filter(function(b){return b.d!=d});S.srate.push({d:d,v:a})}
-else S.tx.push({id:Date.now(),d:d,t:mode=="inc"?"Income":"Expense",c:$("cat").value,a:a});
+else{if(mode=="inc"&&$("cat").value=="Salary"&&S.tx.some(function(t){return t.c=="Salary"&&t.d.slice(0,7)==d.slice(0,7)})&&!confirm("A salary is already recorded for "+d.slice(0,7)+". Add another?"))return;S.tx.push({id:Date.now(),d:d,t:mode=="inc"?"Income":"Expense",c:$("cat").value,a:a})}
 $("amt").value=""}
 $("msg").textContent="Saved";save()};
 $("smp").onclick=function(){var m=iso().slice(0,7),y=function(n){var x=new Date();x.setDate(1);x.setMonth(x.getMonth()-n);return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")},id=1;S.tx=[];
